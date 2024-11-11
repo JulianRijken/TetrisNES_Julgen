@@ -8,7 +8,7 @@
 
 namespace jul
 {
-    class InputContext;
+    struct InputContext;
 }
 
 namespace nes
