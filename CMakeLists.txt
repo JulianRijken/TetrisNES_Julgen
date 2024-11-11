@@ -9,12 +9,17 @@ set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Add all files from game
 set(SOURCE_FILES
-    ${SOURCE_DIR}/GameEntry.cpp
+                                ${SOURCE_DIR}/GameEntry.cpp
+    ${SOURCE_DIR}/Tetris.h
+    ${SOURCE_DIR}/Piece.h       ${SOURCE_DIR}/Piece.cpp
+         ${SOURCE_DIR}/GameState.h  ${SOURCE_DIR}/GameState.cpp
 )
 
 # Adds the source files to the executible
 add_executable(${TARGET_NAME}
     ${SOURCE_FILES}
+    src/Array2D.h src/Array2D.cpp
+    src/Block.h src/Block.cpp
 )
 
 # Include source directories
@@ -22,10 +27,10 @@ target_include_directories(${TARGET_NAME} PUBLIC
     ${SOURCE_DIR}
 )
 
-# enable c++20 features
-target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
+# enable c++23 features
+target_compile_features(${TARGET_NAME} PUBLIC cxx_std_23)
 set_property(TARGET ${TARGET_NAME} PROPERTY
-    CXX_STANDARD 20
+    CXX_STANDARD 23
     CXX_STANDARD_REQUIRED TRUE
     CXX_EXTENSIONS FALSE
 )
