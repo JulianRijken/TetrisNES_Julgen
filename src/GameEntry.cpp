@@ -21,7 +21,7 @@ void jul::Julgen::PreInit()
     jul::GameSettings::g_RenderHeight = Tetris::PIXEL_HEIGHT * Tetris::WINDOW_SCALE;
     jul::GameSettings::g_WindowWidth = jul::GameSettings::g_RenderWidth;
     jul::GameSettings::g_WindowHeight = jul::GameSettings::g_RenderHeight;
-    jul::GameSettings::g_Volume = 1.0f;
+    jul::GameSettings::g_Volume = 0.2f;
 
     // Uses original NES fps
     jul::GameTime::SetFixedDeltaTime(1.0 / Tetris::FRAME_RATE);

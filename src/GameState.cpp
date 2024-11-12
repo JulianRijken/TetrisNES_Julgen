@@ -113,7 +113,7 @@ void nes::GameState::FixedUpdate()
     {
         m_FrameCount = 0;
 
-        TryMovePiece({ 0, -1 });
+        TryMoveActivePiece({ 0, -1 });
     }
 
     if(CanMove({ 0, -1 }))
@@ -134,7 +134,7 @@ void nes::GameState::OnRotateLeftInput(const jul::InputContext& context)
     if(context.state != jul::ButtonState::Down)
         return;
 
-    RotatePiece(RotationDirection::Left);
+    TryRotatePiece(RotationDirection::Left);
 }
 
 void nes::GameState::OnRotateRightInput(const jul::InputContext& context)
@@ -142,7 +142,7 @@ void nes::GameState::OnRotateRightInput(const jul::InputContext& context)
     if(context.state != jul::ButtonState::Down)
         return;
 
-    RotatePiece(RotationDirection::Right);
+    TryRotatePiece(RotationDirection::Right);
 }
 
 void nes::GameState::OnMoveLeftInput(const jul::InputContext& context)
@@ -150,7 +150,7 @@ void nes::GameState::OnMoveLeftInput(const jul::InputContext& context)
     if(context.state != jul::ButtonState::Down)
         return;
 
-    TryMovePiece({ -1, 0 });
+    TryMoveActivePiece({ -1, 0 });
 }
 
 void nes::GameState::OnMoveRightInput(const jul::InputContext& context)
@@ -158,7 +158,7 @@ void nes::GameState::OnMoveRightInput(const jul::InputContext& context)
     if(context.state != jul::ButtonState::Down)
         return;
 
-    TryMovePiece({ 1, 0 });
+    TryMoveActivePiece({ 1, 0 });
 }
 
 void nes::GameState::OnMoveDownInput(const jul::InputContext& context)
@@ -169,10 +169,10 @@ void nes::GameState::OnMoveDownInput(const jul::InputContext& context)
     if(context.state != jul::ButtonState::Down)
         return;
 
-    TryMovePiece({ 0, -1 });
+    TryMoveActivePiece({ 0, -1 });
 }
 
-void nes::GameState::RotatePiece(RotationDirection direction)
+bool nes::GameState::TryRotatePiece(RotationDirection direction)
 {
     const int fromR{ m_ActivePiece->GetRotationIndex() };
     const int toR = jul::math::ClampLoop(
@@ -205,11 +205,11 @@ void nes::GameState::RotatePiece(RotationDirection direction)
             Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::Rotate);
             m_ActivePiece->SetRotation(toR);
             m_ActivePiece->MoveGridPosition(kick);
-            return;
+            return true;
         }
     }
 
-    m_ActivePiece->SetRotation(fromR);
+    return false;
 }
 
 bool nes::GameState::CanMove(const glm::ivec2& moveDelta, int customRotation)
@@ -265,13 +265,13 @@ void nes::GameState::PlaceActivePiece()
     }
 
     SpawnNextPiece();
-    TryClearRows();
+    ClearRows();
 }
 
-void nes::GameState::TryMovePiece(const glm::ivec2& moveDelta)
+bool nes::GameState::TryMoveActivePiece(const glm::ivec2& moveDelta)
 {
     if(m_ActivePiece == nullptr)
-        return;
+        return false;
 
     if(CanMove(moveDelta))
     {
@@ -279,7 +279,11 @@ void nes::GameState::TryMovePiece(const glm::ivec2& moveDelta)
 
         if(moveDelta.x != 0)
             Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::SideMove);
+
+        return true;
     }
+
+    return false;
 }
 
 void nes::GameState::SpawnNextPiece()
@@ -294,7 +298,7 @@ void nes::GameState::SpawnNextPiece()
                                    false);
 }
 
-void nes::GameState::TryClearRows()
+void nes::GameState::ClearRows()
 {
     std::vector<int> rowsToClear{};
 
@@ -409,7 +413,7 @@ void nes::GameState::TryClearRows()
     };
 
 
-    // // Wait for rows to dissipair
+    // Wait for rows to dissipair
     jul::TweenEngine::Start(
         {
             .delay = ROW_CLEAR_DURATION,

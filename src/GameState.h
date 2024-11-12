@@ -32,7 +32,6 @@ namespace nes
         inline static constexpr float ROW_CLEAR_DURATION{ 0.5f };
         inline static constexpr float ROW_FALL_SPEED{ 0.5f };
 
-
         void FixedUpdate() override;
 
         void OnRotateLeftInput(const jul::InputContext& context);
@@ -41,17 +40,16 @@ namespace nes
         void OnMoveRightInput(const jul::InputContext& context);
         void OnMoveDownInput(const jul::InputContext& context);
 
-        void RotatePiece(RotationDirection direction);
         bool CanMove(const glm::ivec2& moveDelta, int customRotation = -1);
+
         void PlaceActivePiece();
-
-
-        void TryMovePiece(const glm::ivec2& moveDelta);
         void SpawnNextPiece();
-        void TryClearRows();
-        void MoveRowsDown();
-        void AddBlockToGrid(const glm::ivec2& gridPosition, int style);
 
+        bool TryRotatePiece(RotationDirection direction);
+        bool TryMoveActivePiece(const glm::ivec2& moveDelta);
+
+        void ClearRows();
+        void AddBlockToGrid(const glm::ivec2& gridPosition, int style);
         void EndGame();
 
         int m_FrameCount{};
