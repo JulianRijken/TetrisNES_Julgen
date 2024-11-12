@@ -24,6 +24,8 @@ nes::GameState::GameState(jul::GameObject* parentPtr) :
     jul::Input::Bind(Tetris::InputBind::MoveLeft, 0, true, this, &GameState::OnMoveLeftInput);
     jul::Input::Bind(Tetris::InputBind::MoveRight, 0, true, this, &GameState::OnMoveRightInput);
     jul::Input::Bind(Tetris::InputBind::MoveDown, 0, true, this, &GameState::OnMoveDownInput);
+    jul::Input::Bind(Tetris::InputBind::MoveUp, 0, true, this, &GameState::OnMoveUpInput);
+
 
     auto& scene = GetGameObject()->GetScene();
     m_Playfield = scene.AddGameObject("Playfield", { 12, -24, 0 });
@@ -42,7 +44,6 @@ nes::GameState::GameState(jul::GameObject* parentPtr) :
     SpawnNextPiece();
 }
 
-
 void nes::GameState::FixedUpdate()
 {
     if(m_ActivePiece == nullptr)
@@ -51,19 +52,19 @@ void nes::GameState::FixedUpdate()
     if(m_ClearingRows)
         return;
 
-    m_FrameCount++;
-
-    if(m_FrameCount > Tetris::GAME_FRAMES_PER_CELL_PER_LEVEL[std::clamp(m_CurrentLevel, 0, Tetris::MAX_LEVELS)] or
-       m_HardDrop)
+    const int framesPerDrop = Tetris::FRAMES_FOR_DROP_PER_LEVEL[std::clamp(m_CurrentLevel, 0, Tetris::MAX_LEVELS)];
+    if(m_MoveFrameCount > (m_HardDrop ? Tetris::FRAMES_FOR_DROP_HARD_DROP : framesPerDrop))
     {
-        m_FrameCount = 0;
-
         TryMoveActivePiece({ 0, -1 });
+        m_MoveFrameCount = 0;
     }
+
+    m_MoveFrameCount++;
+
 
     if(CanMove({ 0, -1 }))
     {
-        m_LockFrameCount = 0;
+        ResetLockFrames();
     }
     else
     {
@@ -72,7 +73,6 @@ void nes::GameState::FixedUpdate()
             PlaceActivePiece();
     }
 }
-
 
 void nes::GameState::OnRotateLeftInput(const jul::InputContext& context)
 {
@@ -117,6 +117,14 @@ void nes::GameState::OnMoveDownInput(const jul::InputContext& context)
     TryMoveActivePiece({ 0, -1 });
 }
 
+void nes::GameState::OnMoveUpInput(const jul::InputContext& context)
+{
+    if(context.state != jul::ButtonState::Down)
+        return;
+
+    PlaceActivePieceMovedDown();
+}
+
 bool nes::GameState::TryRotatePiece(RotationDirection direction)
 {
     const int fromR{ m_ActivePiece->GetRotationIndex() };
@@ -137,7 +145,7 @@ bool nes::GameState::TryRotatePiece(RotationDirection direction)
         else if((fromR == 2 and toR == 1) or (fromR == 3 and toR == 0))
             checkSet = 3;
     }
-    else // I Piece Sets// J L T S Z Piece Sets 
+    else  // I Piece Sets// J L T S Z Piece Sets
     {
         if((fromR == 0 and toR == 1) or (fromR == 2 and toR == 1))
             checkSet = 0;
@@ -157,6 +165,7 @@ bool nes::GameState::TryRotatePiece(RotationDirection direction)
             Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::Rotate);
             m_ActivePiece->SetRotation(toR);
             m_ActivePiece->MoveGridPosition(kick);
+            ResetLockFrames();
             return true;
         }
     }
@@ -215,12 +224,14 @@ void nes::GameState::PlaceActivePiece()
             return;
         }
 
-        Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::Place);
         AddBlockToGrid({ blockPosition.x, blockPosition.y }, m_ActivePiece->GetStyle());
     }
 
-    SpawnNextPiece();
+    m_Statistics[m_ActivePiece->GetTypeIndex()]++;
+    Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::Place);
+
     ClearRows();
+    SpawnNextPiece();
 }
 
 bool nes::GameState::TryMoveActivePiece(const glm::ivec2& moveDelta)
@@ -230,11 +241,10 @@ bool nes::GameState::TryMoveActivePiece(const glm::ivec2& moveDelta)
 
     if(CanMove(moveDelta))
     {
-        m_ActivePiece->MoveGridPosition(moveDelta);
-
         if(moveDelta.x != 0)
             Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::SideMove);
 
+        m_ActivePiece->MoveGridPosition(moveDelta);
         return true;
     }
 
@@ -248,9 +258,16 @@ void nes::GameState::SpawnNextPiece()
 
     auto& scene = GetGameObject()->GetScene();
     auto* pieceGo = scene.AddGameObject("Piece", {}, m_Playfield, false);
-    m_ActivePiece = pieceGo->AddComponent<nes::Piece>(jul::math::RandomRange(0, 6));
-    m_ActivePiece->SetGridPosition(
-        { Tetris::GRID_SIZE_X / 2 - Piece::PIECE_GRID_SIZE / 2, Tetris::GRID_SIZE_Y + Piece::PIECE_GRID_SIZE }, false);
+    m_ActivePiece = pieceGo->AddComponent<nes::Piece>(jul::math::RandomRange(0, 6), m_CurrentLevel);
+    m_ActivePiece->SetGridPosition({ Tetris::GRID_SIZE_X / 2 - Piece::PIECE_GRID_SIZE / 2, Tetris::GRID_SIZE_Y },
+                                   false);
+}
+
+void nes::GameState::PlaceActivePieceMovedDown()
+{
+    while(TryMoveActivePiece({ 0, -1 })) {}
+
+    PlaceActivePiece();
 }
 
 void nes::GameState::ClearRows()
@@ -272,6 +289,13 @@ void nes::GameState::ClearRows()
 
     if(rowsToClear.empty())
         return;
+
+    const int rowCount = static_cast<int>(rowsToClear.size());
+    assert(rowCount <= 4);
+
+    m_LinesCleared += rowCount;
+    m_Score += Tetris::SCORE_PER_ROW[rowCount - 1];
+    UpdateCurrentLevel();
 
     m_ClearingRows = true;
 
@@ -385,7 +409,27 @@ void nes::GameState::AddBlockToGrid(const glm::ivec2& gridPosition, int style)
 {
     auto* blockGo =
         GetGameObject()->GetScene().AddGameObject("Block", { gridPosition.x, gridPosition.y, 0 }, m_Playfield, false);
-    m_Blocks[gridPosition.x][gridPosition.y] = blockGo->AddComponent<nes::Block>(style);
+    m_Blocks[gridPosition.x][gridPosition.y] = blockGo->AddComponent<nes::Block>(style, m_CurrentLevel);
 }
 
 void nes::GameState::EndGame() { jul::SceneManager::GetInstance().LoadScene(0); }
+
+void nes::GameState::ResetLockFrames() { m_LockFrameCount = 0; }
+
+void nes::GameState::UpdateCurrentLevel()
+{
+    const int newLevel{ m_LinesCleared / 10 };
+
+    if(newLevel > m_CurrentLevel)
+    {
+        jul::Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::LevelCear);
+        m_CurrentLevel = newLevel;
+
+        for(int y = 0; y < Tetris::GRID_SIZE_Y; ++y)
+        {
+            for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
+                if(m_Blocks[x][y] != nullptr)
+                    m_Blocks[x][y]->SetLevel(m_CurrentLevel);
+        }
+    }
+}

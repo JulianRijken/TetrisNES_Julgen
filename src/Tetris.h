@@ -27,9 +27,9 @@ namespace nes
 
         inline static constexpr double FRAME_RATE{ 60.0988 };
         inline static constexpr int FRAMES_FOR_LOCK{ 40 };
-        inline static constexpr int FRAMES_FOR_ROW_REMOVE{ 5 };
 
-        inline static constexpr int GAME_FRAMES_PER_CELL_PER_LEVEL[MAX_LEVELS]{
+        inline static constexpr int FRAMES_FOR_DROP_HARD_DROP{ 1 };
+        inline static constexpr int FRAMES_FOR_DROP_PER_LEVEL[MAX_LEVELS]{
             48,  // 0
             43,  // 1
             38,  // 2
@@ -74,6 +74,7 @@ namespace nes
             MoveLeft,
             MoveRight,
             MoveDown,
+            MoveUp
         };
 
         enum class Sounds

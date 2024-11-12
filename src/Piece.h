@@ -2,6 +2,7 @@
 #define PIECE_H
 
 #include <Component.h>
+#include <EaseFunction.h>
 
 #include <glm/vec2.hpp>
 
@@ -14,6 +15,10 @@ namespace nes
         constexpr static int PIECE_GRID_SIZE{ 4 };
 
         constexpr static int AMOUNT_OF_TYPES_OF_PIECES{ 7 };
+
+        constexpr static float INTERP_DURATION_MOVE{ 0.08f };
+        constexpr static float INTERP_DURATION_ROTATION{ 0.13f };
+
 
         constexpr static int KICK_CHECK_TYPES{ 2 };
         constexpr static int KICK_CHECK_SETS{ 4 };
@@ -240,15 +245,17 @@ namespace nes
         };
         // clang-format on
 
-        Piece(jul::GameObject* parentPtr, int type);
+        Piece(jul::GameObject* parentPtr, int type, int level);
 
         [[nodiscard]] int GetTypeIndex() const;
         [[nodiscard]] int GetStyle() const;
         [[nodiscard]] int GetRotationIndex() const;
 
         void SetRotation(int rotation);
-        void MoveGridPosition(const glm::ivec2& moveDelta);
-        void SetGridPosition(const glm::ivec2& gridPosition, bool tween = true);
+        void MoveGridPosition(const glm::ivec2& moveDelta, bool tween = true,
+                              jul::EaseFunction::Type easeFunction = jul::EaseFunction::SineOut);
+        void SetGridPosition(const glm::ivec2& gridPosition, bool tween = true,
+                             jul::EaseFunction::Type easeFunction = jul::EaseFunction::SineOut);
 
         [[nodiscard]] std::vector<glm::ivec2> GetBlocksInGrid() const;
         [[nodiscard]] std::vector<glm::ivec2> GetBlocksInGrid(int rotation) const;

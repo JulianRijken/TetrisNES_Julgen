@@ -15,9 +15,11 @@ namespace nes
     class Block final : public jul::Component
     {
     public:
-        Block(jul::GameObject* parentPtr, int style, int renderLayer = 0);
+        Block(jul::GameObject* parentPtr, int style, int level, int renderLayer = 0);
 
         void LateUpdate() override;
+
+        void SetLevel(int level);
 
     private:
         int m_Style = 0;

@@ -8,7 +8,7 @@
 
 #include "Block.h"
 
-nes::Piece::Piece(jul::GameObject* parentPtr, int type) :
+nes::Piece::Piece(jul::GameObject* parentPtr, int type, int level) :
     jul::Component(parentPtr, "Piece"),
     m_TypeIndex(type)
 {
@@ -46,7 +46,7 @@ nes::Piece::Piece(jul::GameObject* parentPtr, int type) :
                     { static_cast<float>(x) - centerOffset.x, static_cast<float>(y) - centerOffset.y, 0 },
                     rotatePoint,
                     false);
-                block->AddComponent<Block>(GetStyle());
+                block->AddComponent<Block>(GetStyle(), level);
             }
         }
     }
@@ -55,6 +55,7 @@ nes::Piece::Piece(jul::GameObject* parentPtr, int type) :
 int nes::Piece::GetTypeIndex() const { return m_TypeIndex; }
 
 int nes::Piece::GetRotationIndex() const { return m_RotationIndex; }
+
 
 void nes::Piece::SetRotation(int targetRotation)
 {
@@ -66,7 +67,7 @@ void nes::Piece::SetRotation(int targetRotation)
 
 
     jul::TweenEngine::Start(
-        { .duration = 0.1,
+        { .duration = INTERP_DURATION_ROTATION,
           .easeFunction = jul::EaseFunction::SineOut,
           .onUpdate = [this, fromQuat, toQuat](double value)
           { m_RotatePointTransform->SetLocalRotation(glm::slerp(fromQuat, toQuat, static_cast<float>(value))); } },
@@ -77,9 +78,12 @@ void nes::Piece::SetRotation(int targetRotation)
     m_RotationIndex = targetRotation;
 }
 
-void nes::Piece::MoveGridPosition(const glm::ivec2& moveDelta) { SetGridPosition(m_GridPosition + moveDelta); }
+void nes::Piece::MoveGridPosition(const glm::ivec2& moveDelta, bool tween, jul::EaseFunction::Type easeFunction)
+{
+    SetGridPosition(m_GridPosition + moveDelta, tween, easeFunction);
+}
 
-void nes::Piece::SetGridPosition(const glm::ivec2& gridPosition, bool tween)
+void nes::Piece::SetGridPosition(const glm::ivec2& gridPosition, bool tween, jul::EaseFunction::Type easeFunction)
 {
     const glm::vec3 toPosition = { gridPosition.x, gridPosition.y, 0 };
 
@@ -87,10 +91,11 @@ void nes::Piece::SetGridPosition(const glm::ivec2& gridPosition, bool tween)
     {
         const glm::vec3 fromPosition = GetTransform().GetLocalPosition();
 
-        jul::TweenEngine::Start({ .duration = 0.05,
-                                  .easeFunction = jul::EaseFunction::SineOut,
+        jul::TweenEngine::Start({ .duration = INTERP_DURATION_MOVE,
+                                  .easeFunction = easeFunction,
                                   .onUpdate = [this, fromPosition, toPosition](double value)
                                   { GetTransform().SetLocalPosition(glm::mix(fromPosition, toPosition, value)); } },
+
                                 &GetTransform());
     }
     else

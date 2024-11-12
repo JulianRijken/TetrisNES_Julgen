@@ -31,6 +31,7 @@ void jul::Julgen::PreInit()
     Input::AddAction(Tetris::InputBind::MoveLeft, { { SDL_SCANCODE_A }, {}, {} });
     Input::AddAction(Tetris::InputBind::MoveRight, { { SDL_SCANCODE_D }, {}, {} });
     Input::AddAction(Tetris::InputBind::MoveDown, { { SDL_SCANCODE_S }, {}, {} });
+    Input::AddAction(Tetris::InputBind::MoveUp, { { SDL_SCANCODE_W }, {}, {} });
 }
 
 void ExampleScene(jul::Scene& scene)
