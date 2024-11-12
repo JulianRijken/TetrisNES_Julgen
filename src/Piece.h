@@ -29,8 +29,8 @@ namespace nes
         constexpr const static PieceSettings PIECES[AMOUNT_OF_TYPES_OF_PIECES]{
             PieceSettings  // I
             { 0,
-                   { 2.0f, -2.0f },
-                   { {
+                   { 2.0f, 2.0f },  // Rotation offset for first piece from bottom left
+              { {
                     { 0, 0, 0, 0 },
                     { 1, 1, 1, 1 },
                     { 0, 0, 0, 0 },
@@ -56,8 +56,8 @@ namespace nes
                 } } },
             PieceSettings  // J
             { 2,
-                   { 1.5f, -2.5f },
-                   { {
+                   { 1.5f, 1.5f },  // Rotation offset for first piece from bottom left
+              { {
                     { 0, 0, 0, 0 },
                     { 1, 0, 0, 0 },
                     { 1, 1, 1, 0 },
@@ -83,8 +83,8 @@ namespace nes
                 } } },
             PieceSettings  // L
             {
-                   1, { 1.5f, -2.5f },
-                   { {
+                   1, { 1.5f, 1.5f },  // Rotation offset for first piece from bottom left
+                { {
                       { 0, 0, 0, 0 },
                       { 0, 0, 1, 0 },
                       { 1, 1, 1, 0 },
@@ -111,8 +111,8 @@ namespace nes
                    },
             PieceSettings  // O
             { 0,
-                   { 2.0f, -2.0f },
-                   { {
+                   { 2.0f, 2.0f },  // Rotation offset for first piece from bottom left
+              { {
                     { 0, 0, 0, 0 },
                     { 0, 1, 1, 0 },
                     { 0, 1, 1, 0 },
@@ -138,8 +138,8 @@ namespace nes
                 } } },
             PieceSettings  // S
             { 2,
-                   { 1.5f, -2.5f },
-                   { {
+                   { 1.5f, 1.5f },  // Rotation offset for first piece from bottom left
+              { {
                     { 0, 0, 0, 0 },
                     { 0, 1, 1, 0 },
                     { 1, 1, 0, 0 },
@@ -165,8 +165,8 @@ namespace nes
                 } } },
             PieceSettings  // T
             {
-                   0, { 1.5f, -2.5f },
-                   { {
+                   0, { 1.5f, 1.5f },  // Rotation offset for first piece from bottom left
+                { {
                       { 0, 0, 0, 0 },
                       { 0, 1, 0, 0 },
                       { 1, 1, 1, 0 },
@@ -193,8 +193,8 @@ namespace nes
                    },
             PieceSettings  // Z
             {
-                   1, { 1.5f, -2.5f },
-                   { {
+                   1, { 1.5f, 1.5f },  // Rotation offset for first piece from bottom left
+                { {
                       { 0, 0, 0, 0 },
                       { 1, 1, 0, 0 },
                       { 0, 1, 1, 0 },
@@ -247,8 +247,8 @@ namespace nes
         [[nodiscard]] int GetRotationIndex() const;
 
         void SetRotation(int rotation);
-        void MoveGridPosition(glm::ivec2 moveDelta);
-        void SetGridPosition(glm::ivec2 gridPosition, bool tween = true);
+        void MoveGridPosition(const glm::ivec2& moveDelta);
+        void SetGridPosition(const glm::ivec2& gridPosition, bool tween = true);
 
         [[nodiscard]] std::vector<glm::ivec2> GetBlocksInGrid() const;
         [[nodiscard]] std::vector<glm::ivec2> GetBlocksInGrid(int rotation) const;

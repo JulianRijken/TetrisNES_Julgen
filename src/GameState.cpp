@@ -26,73 +26,18 @@ nes::GameState::GameState(jul::GameObject* parentPtr) :
     jul::Input::Bind(Tetris::InputBind::MoveDown, 0, true, this, &GameState::OnMoveDownInput);
 
     auto& scene = GetGameObject()->GetScene();
-    m_Playfield = scene.AddGameObject("Playfield", { 12, -5, 0 });
+    m_Playfield = scene.AddGameObject("Playfield", { 12, -24, 0 });
 
 
-    // AddBlockToGrid({ 0, -19 });
-    // AddBlockToGrid({ 1, -19 });
-    // AddBlockToGrid({ 2, -19 });
-    // AddBlockToGrid({ 3, -19 });
-    // AddBlockToGrid({ 4, -19 });
-    // AddBlockToGrid({ 5, -19 });
-    // AddBlockToGrid({ 6, -19 });
-    // AddBlockToGrid({ 7, -19 });
-    // AddBlockToGrid({ 8, -19 });
-    // AddBlockToGrid({ 9, -19 });
+    // for(int y = 0; y < Tetris::GRID_SIZE_Y; ++y)
+    // {
+    //     for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
+    //     {
+    //         auto* blockGo = GetGameObject()->GetScene().AddGameObject("Block", { x, y, -10 }, m_Playfield, false);
+    //         blockGo->AddComponent<nes::Block>(4);
+    //     }
+    // }
 
-    // AddBlockToGrid({ 0, -18 });
-    // AddBlockToGrid({ 1, -18 });
-    // AddBlockToGrid({ 2, -18 });
-
-
-    // AddBlockToGrid({ 5, -18 });
-    // AddBlockToGrid({ 6, -18 });
-    // AddBlockToGrid({ 7, -18 });
-    // AddBlockToGrid({ 8, -18 });
-    // AddBlockToGrid({ 9, -18 });
-
-    // AddBlockToGrid({ 0, -17 });
-    // AddBlockToGrid({ 1, -17 });
-    // AddBlockToGrid({ 2, -17 });
-    // AddBlockToGrid({ 3, -17 });
-    // AddBlockToGrid({ 4, -17 });
-    // AddBlockToGrid({ 5, -17 });
-    // AddBlockToGrid({ 6, -17 });
-    // AddBlockToGrid({ 7, -17 });
-    // AddBlockToGrid({ 8, -17 });
-    // AddBlockToGrid({ 9, -17 });
-
-    // AddBlockToGrid({ 0, -16 });
-    // AddBlockToGrid({ 1, -16 });
-    // AddBlockToGrid({ 2, -16 });
-
-
-    // AddBlockToGrid({ 5, -16 });
-    // AddBlockToGrid({ 6, -16 });
-    // AddBlockToGrid({ 7, -16 });
-    // AddBlockToGrid({ 8, -16 });
-    // AddBlockToGrid({ 9, -16 });
-
-    // AddBlockToGrid({ 0, -15 });
-    // AddBlockToGrid({ 1, -15 });
-    // AddBlockToGrid({ 2, -15 });
-    // AddBlockToGrid({ 3, -15 });
-    // AddBlockToGrid({ 4, -15 });
-    // AddBlockToGrid({ 5, -15 });
-    // AddBlockToGrid({ 6, -15 });
-    // AddBlockToGrid({ 7, -15 });
-    // AddBlockToGrid({ 8, -15 });
-    // AddBlockToGrid({ 9, -15 });
-
-
-    // AddBlockToGrid({ 6, -14 });
-    // AddBlockToGrid({ 7, -14 });
-    // AddBlockToGrid({ 8, -14 });
-    // AddBlockToGrid({ 9, -14 });
-
-    // AddBlockToGrid({ 7, -13 });
-    // AddBlockToGrid({ 8, -13 });
-    // AddBlockToGrid({ 9, -13 });
 
     SpawnNextPiece();
 }
@@ -180,22 +125,29 @@ bool nes::GameState::TryRotatePiece(RotationDirection direction)
 
     int checkSet{ 0 };
     const int checkType{ m_ActivePiece->GetTypeIndex() == 0 ? 0 : 1 };
-    // clang-format off
-    if (checkType == 0) 
+
+    if(checkType == 0)
     {
-             if ((fromR == 0 and toR == 1) or (fromR == 3 and toR == 2))    checkSet = 0;
-        else if ((fromR == 1 and toR == 0) or (fromR == 2 and toR == 3))    checkSet = 1;
-        else if ((fromR == 1 and toR == 2) or (fromR == 0 and toR == 3))    checkSet = 2;
-        else if ((fromR == 2 and toR == 1) or (fromR == 3 and toR == 0))    checkSet = 3;
+        if((fromR == 0 and toR == 1) or (fromR == 3 and toR == 2))
+            checkSet = 0;
+        else if((fromR == 1 and toR == 0) or (fromR == 2 and toR == 3))
+            checkSet = 1;
+        else if((fromR == 1 and toR == 2) or (fromR == 0 and toR == 3))
+            checkSet = 2;
+        else if((fromR == 2 and toR == 1) or (fromR == 3 and toR == 0))
+            checkSet = 3;
     }
     else // I Piece Sets// J L T S Z Piece Sets 
     {
-             if ((fromR == 0 and toR == 1) or (fromR == 2 and toR == 1))	checkSet = 0;
-        else if ((fromR == 1 and toR == 0) or (fromR == 1 and toR == 2))	checkSet = 1;
-        else if ((fromR == 2 and toR == 3) or (fromR == 0 and toR == 3))	checkSet = 2;
-        else if ((fromR == 3 and toR == 2) or (fromR == 3 and toR == 0))	checkSet = 3;
+        if((fromR == 0 and toR == 1) or (fromR == 2 and toR == 1))
+            checkSet = 0;
+        else if((fromR == 1 and toR == 0) or (fromR == 1 and toR == 2))
+            checkSet = 1;
+        else if((fromR == 2 and toR == 3) or (fromR == 0 and toR == 3))
+            checkSet = 2;
+        else if((fromR == 3 and toR == 2) or (fromR == 3 and toR == 0))
+            checkSet = 3;
     }
-    // clang-format on
 
 
     for(const glm::ivec2& kick : Piece::KICK_CHECKS[checkType][checkSet])
@@ -228,7 +180,8 @@ bool nes::GameState::CanMove(const glm::ivec2& moveDelta, int customRotation)
         if(targetPosition.x < 0 or targetPosition.x >= Tetris::GRID_SIZE_X)
             return false;
 
-        if(targetPosition.y <= -Tetris::GRID_SIZE_Y)
+        // If target position is under map
+        if(targetPosition.y < 0)
             return false;
 
 
@@ -236,10 +189,12 @@ bool nes::GameState::CanMove(const glm::ivec2& moveDelta, int customRotation)
         {
             for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
             {
+                // Igunore empty spaces
                 if(m_Blocks[x][y] == nullptr)
                     continue;
 
-                if(targetPosition == glm::ivec2{ x, -y })
+                // If target position is at a block
+                if(targetPosition == glm::ivec2{ x, y })
                     return false;
             }
         }
@@ -254,7 +209,7 @@ void nes::GameState::PlaceActivePiece()
 
     for(const auto& blockPosition : m_ActivePiece->GetBlocksInGrid())
     {
-        if(blockPosition.y > 0)
+        if(blockPosition.y >= Tetris::GRID_SIZE_Y)
         {
             EndGame();
             return;
@@ -294,20 +249,21 @@ void nes::GameState::SpawnNextPiece()
     auto& scene = GetGameObject()->GetScene();
     auto* pieceGo = scene.AddGameObject("Piece", {}, m_Playfield, false);
     m_ActivePiece = pieceGo->AddComponent<nes::Piece>(jul::math::RandomRange(0, 6));
-    m_ActivePiece->SetGridPosition({ Tetris::GRID_SIZE_X / 2 - Piece::PIECE_GRID_SIZE / 2, Piece::PIECE_GRID_SIZE },
-                                   false);
+    m_ActivePiece->SetGridPosition(
+        { Tetris::GRID_SIZE_X / 2 - Piece::PIECE_GRID_SIZE / 2, Tetris::GRID_SIZE_Y + Piece::PIECE_GRID_SIZE }, false);
 }
 
 void nes::GameState::ClearRows()
 {
     std::vector<int> rowsToClear{};
 
-    for(int y = 0; y < Tetris::GRID_SIZE_Y; ++y)
+    // NOTE: We find rows from top to bottom as this is the order they get cleared
+    for(int y = Tetris::GRID_SIZE_Y - 1; y >= 0; --y)
     {
         int blocksInRow{};
 
         for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
-            if(m_Blocks[x][y] != nullptr)
+            if(m_Blocks[x][y] != nullptr)  // If block exists
                 blocksInRow++;
 
         if(blocksInRow == Tetris::GRID_SIZE_X)
@@ -358,13 +314,15 @@ void nes::GameState::ClearRows()
     {
         std::unordered_map<Block*, int> fallenBlocks{};
 
+        // For each row
         for(const int row : rowsToClear)
         {
-            for(int y = row; y > 1; --y)
+            // All rows above
+            for(int y = row; y < Tetris::GRID_SIZE_Y - 1; ++y)
             {
                 for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
                 {
-                    Block* blockToMove = m_Blocks[x][y - 1];
+                    Block* blockToMove = m_Blocks[x][y + 1];
 
                     // One above
                     if(blockToMove != nullptr)
@@ -373,7 +331,7 @@ void nes::GameState::ClearRows()
                         assert(m_Blocks[x][y] == nullptr);
 
                         m_Blocks[x][y] = blockToMove;
-                        m_Blocks[x][y - 1] = nullptr;
+                        m_Blocks[x][y + 1] = nullptr;
 
                         if(fallenBlocks.contains(blockToMove))
                             fallenBlocks[blockToMove]++;
@@ -427,7 +385,7 @@ void nes::GameState::AddBlockToGrid(const glm::ivec2& gridPosition, int style)
 {
     auto* blockGo =
         GetGameObject()->GetScene().AddGameObject("Block", { gridPosition.x, gridPosition.y, 0 }, m_Playfield, false);
-    m_Blocks[gridPosition.x][-gridPosition.y] = blockGo->AddComponent<nes::Block>(style);
+    m_Blocks[gridPosition.x][gridPosition.y] = blockGo->AddComponent<nes::Block>(style);
 }
 
 void nes::GameState::EndGame() { jul::SceneManager::GetInstance().LoadScene(0); }

@@ -14,21 +14,38 @@ nes::Piece::Piece(jul::GameObject* parentPtr, int type) :
 {
     auto& scene = GetGameObject()->GetScene();
 
-    const glm::vec2 centerOffset = PIECES[m_TypeIndex].centerOffset;
+    glm::vec2 centerOffset = PIECES[m_TypeIndex].centerOffset;
+    centerOffset.y -= 1;
 
-    auto* rotatePoint = scene.AddGameObject("Piece", { centerOffset.x, centerOffset.y, 0 }, GetGameObject(), false);
+    auto* rotatePoint =
+        scene.AddGameObject("rotatePoint", { centerOffset.x, centerOffset.y, 0 }, GetGameObject(), false);
     m_RotatePointTransform = &rotatePoint->GetTransform();
+
+
+    // auto* debugBlockPivot = scene.AddGameObject("debugBlockPivot", { 0, 0, 0 }, GetGameObject(), false);
+    // debugBlockPivot->AddComponent<Block>(3, -4);
+
+    // auto* debugRotatePoint = scene.AddGameObject("debugRotatePoint", { 0, 0, 0 }, rotatePoint, false);
+    // debugRotatePoint->AddComponent<Block>(2, 10);
 
 
     for(int y = 0; y < PIECE_GRID_SIZE; ++y)
     {
         for(int x = 0; x < PIECE_GRID_SIZE; ++x)
         {
+            // auto* debugPieceGrid = scene.AddGameObject("debugPieceGrid", { x, y, 0 }, GetGameObject(), false);
+            // debugPieceGrid->AddComponent<Block>(4, -10);
+
             // NOTE: Rotation index is set to 0!
-            if(PIECES[m_TypeIndex].rotations[0][y][x])
+            // NOTE: The Y is now going from 3 - 0 instead of 0 - 3 because we read the array from top left
+            if(PIECES[m_TypeIndex].rotations[0][PIECE_GRID_SIZE - 1 - y][x])
             {
-                auto* block =
-                    scene.AddGameObject("Block", { x - centerOffset.x, -y - centerOffset.y, 0 }, rotatePoint, false);
+                // - centerOffset to undo the pivot point
+                auto* block = scene.AddGameObject(
+                    "Block",
+                    { static_cast<float>(x) - centerOffset.x, static_cast<float>(y) - centerOffset.y, 0 },
+                    rotatePoint,
+                    false);
                 block->AddComponent<Block>(GetStyle());
             }
         }
@@ -60,9 +77,9 @@ void nes::Piece::SetRotation(int targetRotation)
     m_RotationIndex = targetRotation;
 }
 
-void nes::Piece::MoveGridPosition(glm::ivec2 moveDelta) { SetGridPosition(m_GridPosition + moveDelta); }
+void nes::Piece::MoveGridPosition(const glm::ivec2& moveDelta) { SetGridPosition(m_GridPosition + moveDelta); }
 
-void nes::Piece::SetGridPosition(glm::ivec2 gridPosition, bool tween)
+void nes::Piece::SetGridPosition(const glm::ivec2& gridPosition, bool tween)
 {
     const glm::vec3 toPosition = { gridPosition.x, gridPosition.y, 0 };
 
@@ -92,8 +109,9 @@ std::vector<glm::ivec2> nes::Piece::GetBlocksInGrid(int rotationIndex) const
 
     for(int y = 0; y < PIECE_GRID_SIZE; ++y)
         for(int x = 0; x < PIECE_GRID_SIZE; ++x)
-            if(PIECES[m_TypeIndex].rotations[rotationIndex][y][x])
-                blocks.emplace_back(x + m_GridPosition.x, -y + m_GridPosition.y);
+            // NOTE: The Y is now going from 3 - 0 instead of 0 - 3 because we read the array from top left
+            if(PIECES[m_TypeIndex].rotations[rotationIndex][PIECE_GRID_SIZE - 1 - y][x])
+                blocks.emplace_back(x + m_GridPosition.x, y + m_GridPosition.y);
 
     return blocks;
 }
