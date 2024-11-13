@@ -20,6 +20,7 @@ add_executable(${TARGET_NAME}
     ${SOURCE_FILES}
     src/Array2D.h src/Array2D.cpp
     src/Block.h src/Block.cpp
+    src/Grid.h src/Grid.cpp
 )
 
 # Include source directories

@@ -91,12 +91,12 @@ void nes::Piece::SetGridPosition(const glm::ivec2& gridPosition, bool tween, jul
     {
         const glm::vec3 fromPosition = GetTransform().GetLocalPosition();
 
-        jul::TweenEngine::Start({ .duration = INTERP_DURATION_MOVE,
-                                  .easeFunction = easeFunction,
-                                  .onUpdate = [this, fromPosition, toPosition](double value)
-                                  { GetTransform().SetLocalPosition(glm::mix(fromPosition, toPosition, value)); } },
-
-                                &GetTransform());
+        jul::TweenEngine::Start(
+            { .duration = INTERP_DURATION_MOVE,
+              .easeFunction = easeFunction,
+              .onUpdate = [this, fromPosition, toPosition](double value)
+              { GetTransform().GetTransform().SetLocalPosition(glm::mix(fromPosition, toPosition, value)); } },
+            this);
     }
     else
     {
@@ -120,5 +120,6 @@ std::vector<glm::ivec2> nes::Piece::GetBlocksInGrid(int rotationIndex) const
 
     return blocks;
 }
+
 
 int nes::Piece::GetStyle() const { return PIECES[m_TypeIndex].style; }

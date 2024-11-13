@@ -17,6 +17,7 @@ namespace nes
 
     class Block;
     class Piece;
+    class Grid;
 
     class GameState final : public jul::Component, public jul::IEventListener
     {
@@ -30,8 +31,6 @@ namespace nes
             Right = 1
         };
 
-        inline static constexpr float ROW_CLEAR_DURATION{ 0.5f };
-        inline static constexpr float ROW_FALL_SPEED{ 0.5f };
 
         void FixedUpdate() override;
 
@@ -51,8 +50,7 @@ namespace nes
         bool TryRotatePiece(RotationDirection direction);
         bool TryMoveActivePiece(const glm::ivec2& moveDelta);
 
-        void ClearRows();
-        void AddBlockToGrid(const glm::ivec2& gridPosition, int style);
+
         void EndGame();
         void ResetLockFrames();
         void UpdateCurrentLevel();
@@ -66,10 +64,8 @@ namespace nes
         int m_LinesCleared{};
 
         bool m_HardDrop{};
-        bool m_ClearingRows{};
         Piece* m_ActivePiece{};
-        Block* m_Blocks[Tetris::GRID_SIZE_X][Tetris::GRID_SIZE_Y]{};
-        jul::GameObject* m_Playfield{ nullptr };
+        Grid* m_Grid{ nullptr };
     };
 }  // namespace nes
 

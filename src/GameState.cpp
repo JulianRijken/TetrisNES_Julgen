@@ -10,7 +10,7 @@
 #include <Sound.h>
 #include <TweenEngine.h>
 
-#include "Block.h"
+#include "Grid.h"
 #include "Piece.h"
 #include "Tetris.h"
 
@@ -26,20 +26,8 @@ nes::GameState::GameState(jul::GameObject* parentPtr) :
     jul::Input::Bind(Tetris::InputBind::MoveDown, 0, true, this, &GameState::OnMoveDownInput);
     jul::Input::Bind(Tetris::InputBind::MoveUp, 0, true, this, &GameState::OnMoveUpInput);
 
-
-    auto& scene = GetGameObject()->GetScene();
-    m_Playfield = scene.AddGameObject("Playfield", { 12, -24, 0 });
-
-
-    // for(int y = 0; y < Tetris::GRID_SIZE_Y; ++y)
-    // {
-    //     for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
-    //     {
-    //         auto* blockGo = GetGameObject()->GetScene().AddGameObject("Block", { x, y, -10 }, m_Playfield, false);
-    //         blockGo->AddComponent<nes::Block>(4);
-    //     }
-    // }
-
+    // Spawn grid in scene
+    m_Grid = GetGameObject()->GetScene().AddGameObject("Playfield", { 12, -24, 0 })->AddComponent<Grid>();
 
     SpawnNextPiece();
 }
@@ -49,7 +37,7 @@ void nes::GameState::FixedUpdate()
     if(m_ActivePiece == nullptr)
         return;
 
-    if(m_ClearingRows)
+    if(m_Grid->IsInClearingTween())
         return;
 
     const int framesPerDrop = Tetris::FRAMES_FOR_DROP_PER_LEVEL[std::clamp(m_CurrentLevel, 0, Tetris::MAX_LEVELS)];
@@ -179,10 +167,10 @@ bool nes::GameState::CanMove(const glm::ivec2& moveDelta, int customRotation)
 
     // Call optinally with custom rotation
     // Is used for the kick checks and seeing if next rotation works
-    const auto& blocksInGrid =
+    const std::vector<glm::ivec2>& blocksInGrid =
         customRotation == -1 ? m_ActivePiece->GetBlocksInGrid() : m_ActivePiece->GetBlocksInGrid(customRotation);
 
-    for(const auto& blockPosition : blocksInGrid)
+    for(const glm::ivec2& blockPosition : blocksInGrid)
     {
         const glm::ivec2 targetPosition{ blockPosition.x + moveDelta.x, blockPosition.y + moveDelta.y };
 
@@ -193,20 +181,8 @@ bool nes::GameState::CanMove(const glm::ivec2& moveDelta, int customRotation)
         if(targetPosition.y < 0)
             return false;
 
-
-        for(int y = 0; y < Tetris::GRID_SIZE_Y; ++y)
-        {
-            for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
-            {
-                // Igunore empty spaces
-                if(m_Blocks[x][y] == nullptr)
-                    continue;
-
-                // If target position is at a block
-                if(targetPosition == glm::ivec2{ x, y })
-                    return false;
-            }
-        }
+        if(m_Grid->IsBlockOverlapping(targetPosition))
+            return false;
     }
 
     return true;
@@ -224,13 +200,20 @@ void nes::GameState::PlaceActivePiece()
             return;
         }
 
-        AddBlockToGrid({ blockPosition.x, blockPosition.y }, m_ActivePiece->GetStyle());
+        m_Grid->AddBlockToGrid({ blockPosition.x, blockPosition.y }, m_ActivePiece->GetStyle(), m_CurrentLevel);
     }
 
     m_Statistics[m_ActivePiece->GetTypeIndex()]++;
     Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::Place);
 
-    ClearRows();
+    const int rowsCleared = m_Grid->TryClearRows();
+    if(rowsCleared > 0)
+    {
+        m_LinesCleared += rowsCleared;
+        m_Score += Tetris::SCORE_PER_ROW[rowsCleared - 1];
+        UpdateCurrentLevel();
+    }
+
     SpawnNextPiece();
 }
 
@@ -257,7 +240,7 @@ void nes::GameState::SpawnNextPiece()
         m_ActivePiece->GetGameObject()->Destroy();
 
     auto& scene = GetGameObject()->GetScene();
-    auto* pieceGo = scene.AddGameObject("Piece", {}, m_Playfield, false);
+    auto* pieceGo = scene.AddGameObject("Piece", {}, m_Grid->GetGameObject(), false);
     m_ActivePiece = pieceGo->AddComponent<nes::Piece>(jul::math::RandomRange(0, 6), m_CurrentLevel);
     m_ActivePiece->SetGridPosition({ Tetris::GRID_SIZE_X / 2 - Piece::PIECE_GRID_SIZE / 2, Tetris::GRID_SIZE_Y },
                                    false);
@@ -265,154 +248,19 @@ void nes::GameState::SpawnNextPiece()
 
 void nes::GameState::PlaceActivePieceMovedDown()
 {
-    while(TryMoveActivePiece({ 0, -1 })) {}
+    int moveDistance{ -1 };
+    while(CanMove({ 0, moveDistance }))
+        moveDistance--;
 
+    TryMoveActivePiece({ 0, moveDistance + 1 });
     PlaceActivePiece();
 }
 
-void nes::GameState::ClearRows()
+void nes::GameState::EndGame()
 {
-    std::vector<int> rowsToClear{};
-
-    // NOTE: We find rows from top to bottom as this is the order they get cleared
-    for(int y = Tetris::GRID_SIZE_Y - 1; y >= 0; --y)
-    {
-        int blocksInRow{};
-
-        for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
-            if(m_Blocks[x][y] != nullptr)  // If block exists
-                blocksInRow++;
-
-        if(blocksInRow == Tetris::GRID_SIZE_X)
-            rowsToClear.emplace_back(y);
-    }
-
-    if(rowsToClear.empty())
-        return;
-
-    const int rowCount = static_cast<int>(rowsToClear.size());
-    assert(rowCount <= 4);
-
-    m_LinesCleared += rowCount;
-    m_Score += Tetris::SCORE_PER_ROW[rowCount - 1];
-    UpdateCurrentLevel();
-
-    m_ClearingRows = true;
-
-
-    for(const int rowToClear : rowsToClear)
-    {
-        for(int colToClear = 0; colToClear < Tetris::GRID_SIZE_X; colToClear++)
-        {
-
-            const int halfSize = Tetris::GRID_SIZE_X / 2;
-            double delay = 0;
-            if(colToClear < halfSize)
-                delay = halfSize - colToClear;
-            else
-                delay = colToClear - (halfSize - 1);
-
-            delay /= halfSize;
-
-            jul::TweenEngine::Start(
-                {
-                    // .from = 1.0,
-                    // .to = 0.0,
-                    .duration = delay * ROW_CLEAR_DURATION,
-                    // .onUpdate = [blockGo](double value) { blockGo->GetTransform().SetLocalScale(value, value, value);
-                    // },
-                    .onEnd =
-                        [this, colToClear, rowToClear]()
-                    {
-                        assert(m_Blocks[colToClear][rowToClear]);
-
-                        m_Blocks[colToClear][rowToClear]->GetGameObject()->Destroy();
-                        m_Blocks[colToClear][rowToClear] = nullptr;
-                    },
-                },
-                this);
-        }
-    }
-
-    auto moveRowsDown = [this, rowsToClear]()
-    {
-        std::unordered_map<Block*, int> fallenBlocks{};
-
-        // For each row
-        for(const int row : rowsToClear)
-        {
-            // All rows above
-            for(int y = row; y < Tetris::GRID_SIZE_Y - 1; ++y)
-            {
-                for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
-                {
-                    Block* blockToMove = m_Blocks[x][y + 1];
-
-                    // One above
-                    if(blockToMove != nullptr)
-                    {
-                        // Row should be cleared!
-                        assert(m_Blocks[x][y] == nullptr);
-
-                        m_Blocks[x][y] = blockToMove;
-                        m_Blocks[x][y + 1] = nullptr;
-
-                        if(fallenBlocks.contains(blockToMove))
-                            fallenBlocks[blockToMove]++;
-                        else
-                            fallenBlocks[blockToMove] = 1;
-                    }
-                }
-            }
-        }
-
-        for(const auto& [block, distance] : fallenBlocks)
-        {
-            const glm::vec3 fromPosition = block->GetTransform().GetLocalPosition();
-            const glm::vec3 toPosition = fromPosition - glm::vec3{ 0, distance, 0 };
-
-            jul::TweenEngine::Start(
-                {
-                    .duration = ROW_FALL_SPEED * distance - jul::math::RandomRange(0.1, 0.2),
-                    .easeFunction = jul::EaseFunction::BounceOut,
-                    .onUpdate =
-                        [block, fromPosition, toPosition](double value)
-                    {
-                        const glm::vec3 targetPosition = glm::mix(fromPosition, toPosition, value);
-                        block->GetTransform().SetLocalPosition(targetPosition);
-                    },
-                },
-                block);
-        }
-
-        jul::TweenEngine::Start(
-            {
-                .delay = ROW_FALL_SPEED * rowsToClear.size(),
-                .duration = 0,
-                .onEnd = [this]() { m_ClearingRows = false; },
-            },
-            this);
-    };
-
-
-    // Wait for rows to dissipair
-    jul::TweenEngine::Start(
-        {
-            .delay = ROW_CLEAR_DURATION,
-            .duration = 0,
-            .onEnd = moveRowsDown,
-        },
-        this);
+    //
+    jul::SceneManager::GetInstance().LoadScene(0);
 }
-
-void nes::GameState::AddBlockToGrid(const glm::ivec2& gridPosition, int style)
-{
-    auto* blockGo =
-        GetGameObject()->GetScene().AddGameObject("Block", { gridPosition.x, gridPosition.y, 0 }, m_Playfield, false);
-    m_Blocks[gridPosition.x][gridPosition.y] = blockGo->AddComponent<nes::Block>(style, m_CurrentLevel);
-}
-
-void nes::GameState::EndGame() { jul::SceneManager::GetInstance().LoadScene(0); }
 
 void nes::GameState::ResetLockFrames() { m_LockFrameCount = 0; }
 
@@ -424,12 +272,5 @@ void nes::GameState::UpdateCurrentLevel()
     {
         jul::Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::LevelCear);
         m_CurrentLevel = newLevel;
-
-        for(int y = 0; y < Tetris::GRID_SIZE_Y; ++y)
-        {
-            for(int x = 0; x < Tetris::GRID_SIZE_X; ++x)
-                if(m_Blocks[x][y] != nullptr)
-                    m_Blocks[x][y]->SetLevel(m_CurrentLevel);
-        }
     }
 }
