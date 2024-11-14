@@ -1,4 +1,5 @@
 #include <Camera.h>
+#include <EngineGUI.h>
 #include <GameSettings.h>
 #include <GameTime.h>
 #include <Input.h>
@@ -8,6 +9,7 @@
 #include <SceneManager.h>
 #include <SpriteRenderer.h>
 #include <TweenEngine.h>
+#include <GameObject.h>
 
 #include "GameState.h"
 #include "Tetris.h"
@@ -32,12 +34,14 @@ void jul::Julgen::PreInit()
     Input::AddAction(Tetris::InputBind::MoveRight, { { SDL_SCANCODE_D }, {}, {} });
     Input::AddAction(Tetris::InputBind::MoveDown, { { SDL_SCANCODE_S }, {}, {} });
     Input::AddAction(Tetris::InputBind::MoveUp, { { SDL_SCANCODE_W }, {}, {} });
+
+    EngineGUI::ShowDebugInfo(true);
 }
 
 void ExampleScene(jul::Scene& scene)
 {
     auto* camera = scene.AddGameObject("Camera");
-    camera->AddComponent<jul::Camera>(14, jul::GameSettings::GetAspectRatio());
+    camera->AddComponent<jul::Camera>(14.0f, jul::GameSettings::GetAspectRatio());
     camera->GetTransform().SetLocalPosition(16, -14, 0);
 
     auto* background = scene.AddGameObject("Background");
