@@ -61,7 +61,7 @@ void jul::Julgen::GameStart()
     Resources::BindSound(Tetris::Sounds::Rotate, "SFX/SFX 6.mp3", "rotate");
     Resources::BindSound(Tetris::Sounds::LineClear, "SFX/SFX 11.mp3", "lineClear");
     Resources::BindSound(Tetris::Sounds::Tetris, "SFX/SFX 10.mp3", "tetris");
-    Resources::BindSound(Tetris::Sounds::LevelCear, "SFX/SFX 7.mp3", "levelClear");
+    Resources::BindSound(Tetris::Sounds::LevelClear, "SFX/SFX 7.mp3", "levelClear");
     Resources::BindSound(Tetris::Sounds::GameOver, "SFX/SFX 14.mp3", "gameOver");
 
     SceneManager::BindScene(0, ExampleScene);

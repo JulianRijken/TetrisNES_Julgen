@@ -3,7 +3,6 @@
 
 #include <Component.h>
 #include <Piece.h>
-#include <Tetris.h>
 
 #include <glm/vec2.hpp>
 
@@ -31,7 +30,6 @@ namespace nes
             Right = 1
         };
 
-
         void FixedUpdate() override;
 
         void OnRotateLeftInput(const jul::InputContext& context);
@@ -41,14 +39,14 @@ namespace nes
         void OnMoveDownInput(const jul::InputContext& context);
         void OnMoveUpInput(const jul::InputContext& context);
 
-        bool CanMove(const glm::ivec2& moveDelta, int customRotation = -1);
+        [[nodiscard]] bool CanMove(const glm::ivec2& moveDelta, int customRotation = -1) const;
 
         void PlaceActivePiece();
         void SpawnNextPiece();
         void PlaceActivePieceMovedDown();
 
         bool TryRotatePiece(RotationDirection direction);
-        bool TryMoveActivePiece(const glm::ivec2& moveDelta);
+        bool TryMoveActivePiece(const glm::ivec2& moveDelta) const;
 
 
         void EndGame();

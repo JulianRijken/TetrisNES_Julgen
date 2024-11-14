@@ -85,7 +85,7 @@ namespace nes
             Place,
             Tetris,
             LineClear,
-            LevelCear,
+            LevelClear,
         };
     };
 

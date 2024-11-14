@@ -1,20 +1,17 @@
 #include "GameState.h"
 
 #include <Component.h>
-#include <fmt/core.h>
 #include <GameObject.h>
 #include <Input.h>
 #include <Locator.h>
 #include <MathExtensions.h>
 #include <SceneManager.h>
 #include <Sound.h>
-#include <TweenEngine.h>
 
 #include "Grid.h"
 #include "Piece.h"
 #include "Tetris.h"
 
-using namespace jul;
 
 nes::GameState::GameState(jul::GameObject* parentPtr) :
     jul::Component(parentPtr, "GameState")
@@ -27,7 +24,7 @@ nes::GameState::GameState(jul::GameObject* parentPtr) :
     jul::Input::Bind(Tetris::InputBind::MoveUp, 0, true, this, &GameState::OnMoveUpInput);
 
     // Spawn grid in scene
-    m_Grid = GetGameObject()->GetScene().AddGameObject("Playfield", { 12, -24, 0 })->AddComponent<Grid>();
+    m_Grid = GetGameObject()->GetScene().AddGameObject("Grid", { 12, -24, 0 })->AddComponent<Grid>();
 
     SpawnNextPiece();
 }
@@ -150,7 +147,7 @@ bool nes::GameState::TryRotatePiece(RotationDirection direction)
     {
         if(CanMove(kick, toR))
         {
-            Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::Rotate);
+            jul::Locator::Get<jul::Sound>().PlaySound((int)Tetris::Sounds::Rotate);
             m_ActivePiece->SetRotation(toR);
             m_ActivePiece->MoveGridPosition(kick);
             ResetLockFrames();
@@ -161,14 +158,16 @@ bool nes::GameState::TryRotatePiece(RotationDirection direction)
     return false;
 }
 
-bool nes::GameState::CanMove(const glm::ivec2& moveDelta, int customRotation)
+bool nes::GameState::CanMove(const glm::ivec2& moveDelta, int customRotation) const
 {
     assert(m_ActivePiece);
 
-    // Call optinally with custom rotation
+    // Call optionally with custom rotation
     // Is used for the kick checks and seeing if next rotation works
     const std::vector<glm::ivec2>& blocksInGrid =
         customRotation == -1 ? m_ActivePiece->GetBlocksInGrid() : m_ActivePiece->GetBlocksInGrid(customRotation);
+
+
 
     for(const glm::ivec2& blockPosition : blocksInGrid)
     {
@@ -204,7 +203,7 @@ void nes::GameState::PlaceActivePiece()
     }
 
     m_Statistics[m_ActivePiece->GetTypeIndex()]++;
-    Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::Place);
+    jul::Locator::Get<jul::Sound>().PlaySound(static_cast<int>(Tetris::Sounds::Place));
 
     const int rowsCleared = m_Grid->TryClearRows();
     if(rowsCleared > 0)
@@ -217,7 +216,7 @@ void nes::GameState::PlaceActivePiece()
     SpawnNextPiece();
 }
 
-bool nes::GameState::TryMoveActivePiece(const glm::ivec2& moveDelta)
+bool nes::GameState::TryMoveActivePiece(const glm::ivec2& moveDelta) const
 {
     if(m_ActivePiece == nullptr)
         return false;
@@ -225,7 +224,7 @@ bool nes::GameState::TryMoveActivePiece(const glm::ivec2& moveDelta)
     if(CanMove(moveDelta))
     {
         if(moveDelta.x != 0)
-            Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::SideMove);
+            jul::Locator::Get<jul::Sound>().PlaySound(static_cast<int>(Tetris::Sounds::SideMove));
 
         m_ActivePiece->MoveGridPosition(moveDelta);
         return true;
@@ -252,8 +251,8 @@ void nes::GameState::PlaceActivePieceMovedDown()
     while(CanMove({ 0, moveDistance }))
         moveDistance--;
 
-    TryMoveActivePiece({ 0, moveDistance + 1 });
-    PlaceActivePiece();
+    if(TryMoveActivePiece({ 0, moveDistance + 1 }))
+        PlaceActivePiece();
 }
 
 void nes::GameState::EndGame()
@@ -270,7 +269,7 @@ void nes::GameState::UpdateCurrentLevel()
 
     if(newLevel > m_CurrentLevel)
     {
-        jul::Locator::Get<Sound>().PlaySound((int)Tetris::Sounds::LevelCear);
+        jul::Locator::Get<jul::Sound>().PlaySound(static_cast<int>(Tetris::Sounds::LevelClear));
         m_CurrentLevel = newLevel;
     }
 }

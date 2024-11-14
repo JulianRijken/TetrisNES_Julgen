@@ -12,15 +12,15 @@ set(SOURCE_FILES
                                 ${SOURCE_DIR}/GameEntry.cpp
     ${SOURCE_DIR}/Tetris.h
     ${SOURCE_DIR}/Piece.h       ${SOURCE_DIR}/Piece.cpp
-         ${SOURCE_DIR}/GameState.h  ${SOURCE_DIR}/GameState.cpp
+    ${SOURCE_DIR}/GameState.h   ${SOURCE_DIR}/GameState.cpp
+              
+    ${SOURCE_DIR}/Block.h       ${SOURCE_DIR}/Block.cpp
+    ${SOURCE_DIR}/Grid.h        ${SOURCE_DIR}/Grid.cpp
 )
 
 # Adds the source files to the executible
 add_executable(${TARGET_NAME}
     ${SOURCE_FILES}
-    src/Array2D.h src/Array2D.cpp
-    src/Block.h src/Block.cpp
-    src/Grid.h src/Grid.cpp
 )
 
 # Include source directories

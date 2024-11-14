@@ -3,7 +3,6 @@
 
 #include <Component.h>
 
-#include <glm/glm.hpp>
 
 namespace jul
 {
@@ -18,7 +17,6 @@ namespace nes
         Block(jul::GameObject* parentPtr, int style, int level, int renderLayer = 0);
 
         void LateUpdate() override;
-
         void SetLevel(int level);
 
     private:

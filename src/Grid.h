@@ -19,14 +19,14 @@ namespace nes
         void AddBlockToGrid(const glm::ivec2& gridPosition, int style, int level);
 
         int TryClearRows();
-        bool IsInClearingTween() const;
-        bool IsBlockOverlapping(const glm::ivec2& block) const;
+        [[nodiscard]] bool IsInClearingTween() const;
+        [[nodiscard]] bool IsBlockOverlapping(const glm::ivec2& block) const;
 
     private:
         inline static constexpr float ROW_CLEAR_DURATION{ 0.5f };
         inline static constexpr float ROW_FALL_SPEED{ 0.5f };
 
-        bool IsBlockInGrid(const glm::ivec2& block) const;
+        [[nodiscard]] bool IsBlockInGrid(const glm::ivec2& block) const;
 
         bool m_ClearingRows{};
         Block* m_Blocks[Tetris::GRID_SIZE_X][Tetris::GRID_SIZE_Y]{};

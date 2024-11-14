@@ -1,7 +1,6 @@
 #include "Block.h"
 
 #include <GameObject.h>
-#include <GameTime.h>
 #include <MathExtensions.h>
 #include <Resources.h>
 #include <SceneManager.h>
@@ -14,7 +13,7 @@ nes::Block::Block(jul::GameObject* parentPtr, int style, int level, int renderLa
     // rotatePivot;
     auto& scene = GetGameObject()->GetScene();
 
-    auto* blockPivotGo = scene.AddGameObject("BlockPivot", { 0.5f, -0.5f, 0 }, GetGameObject(), false);
+    const auto* blockPivotGo = scene.AddGameObject("BlockPivot", { 0.5f, -0.5f, 0 }, GetGameObject(), false);
     m_RotatePivotTransform = &blockPivotGo->GetTransform();
 
     auto* spritePointGo = scene.AddGameObject("SpritePoint", { -0.5f, 0.5f, 0 }, blockPivotGo, false);

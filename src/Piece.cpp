@@ -17,7 +17,7 @@ nes::Piece::Piece(jul::GameObject* parentPtr, int type, int level) :
     glm::vec2 centerOffset = PIECES[m_TypeIndex].centerOffset;
     centerOffset.y -= 1;
 
-    auto* rotatePoint =
+    const auto* rotatePoint =
         scene.AddGameObject("rotatePoint", { centerOffset.x, centerOffset.y, 0 }, GetGameObject(), false);
     m_RotatePointTransform = &rotatePoint->GetTransform();
 
